@@ -196,8 +196,8 @@ ALSO = [
 # (lon, lat) for map pins 1-13 and dots 14-43.
 PINS = {
     1: (34.0, 45.3, BLUE), 2: (50.5, 26.2, ORANGE), 3: (121.0, 14.6, PURPLE),
-    4: (23.0, -2.0, GREEN), 5: (30.7, 36.9, GREY), 6: (-95.0, 38.0, REDK),
-    7: (-74.0, 40.7, REDK), 8: (34.5, 31.5, ORANGE), 9: (106.9, 47.9, PURPLE),
+    4: (23.0, -2.0, GREEN), 5: (30.7, 37.5, GREY), 6: (-95.0, 38.0, REDK),
+    7: (-74.0, 40.7, REDK), 8: (34.5, 31.0, ORANGE), 9: (106.9, 47.9, PURPLE),
     10: (20.5, 44.8, BLUE), 11: (90.4, 23.8, PURPLE), 12: (86.0, 55.4, BLUE),
     13: (32.6, -25.9, GREEN),
 }
@@ -310,24 +310,39 @@ def _strip(d, x, y, w, h, color, text):
 
 
 def ill_bridge(d, x, y, w, h):
-    d.rectangle([x, y, x + w, y + h], fill=(188, 216, 232))
-    d.rectangle([x, y + 48, x + w, y + h], fill=(63, 109, 142))
-    for wy in (56, 66, 76):
-        for wx in range(0, w, 26):
-            d.arc([x + wx, y + wy - 3, x + wx + 22, y + wy + 5], 0, 180,
-                  fill=(120, 170, 200))
+    # Pale sky, blue water, thin clean deck with a clear fallen gap.
+    d.rectangle([x, y, x + w, y + h], fill=(202, 224, 236))
+    d.rectangle([x, y + 44, x + w, y + h], fill=(88, 138, 173))
+    for wy in (52, 60, 68):
+        for wx in range(0, w, 30):
+            d.arc([x + wx, y + wy - 3, x + wx + 24, y + wy + 5], 0, 180,
+                  fill=(140, 182, 210))
     cx = x + w // 2
-    _smoke(d, cx + 18, y + 16, 9, (105, 105, 105))
-    d.rectangle([x, y + 40, cx - 42, y + 46], fill=(70, 70, 70))
-    d.rectangle([cx + 42, y + 40, x + w, y + 46], fill=(70, 70, 70))
-    d.polygon([(cx - 42, y + 42), (cx - 8, y + 46), (cx + 2, y + 72),
-               (cx - 14, y + 74)], fill=(50, 50, 50))
-    for px in (x + 30, x + 90, cx + 90, cx + 150, x + w - 30):
-        d.rectangle([px, y + 46, px + 7, y + 76], fill=(90, 90, 90))
-    _plane(d, x + 82, y + 12, 9)
-    _plane(d, x + w - 48, y + 14, 9)
-    d.polygon([(cx + 6, y + 26), (cx + 16, y + 30), (cx + 6, y + 34)],
-              fill=(230, 160, 30))
+    # Slender pillars (none under the fallen gap).
+    for px in (x + 30, x + 95, cx + 70, cx + 130, x + w - 28):
+        d.rectangle([px, y + 44, px + 4, y + 80], fill=(70, 76, 84))
+    # Thin deck, split where the span fell.
+    d.rectangle([x, y + 40, cx - 36, y + 44], fill=(55, 60, 68))
+    d.rectangle([cx + 36, y + 40, x + w, y + 44], fill=(55, 60, 68))
+    # Fallen span: a thin tilted deck segment dropping into the water.
+    d.polygon([(cx - 36, y + 40), (cx - 28, y + 44), (cx - 12, y + 66),
+               (cx - 20, y + 68)], fill=(55, 60, 68))
+    # Small white splash where the span meets the water.
+    d.line([cx - 26, y + 68, cx - 18, y + 64], fill=(255, 255, 255), width=2)
+    d.line([cx - 22, y + 68, cx - 14, y + 68], fill=(255, 255, 255), width=2)
+    # Orange flash at the break point.
+    d.polygon([(cx, y + 28), (cx + 4, y + 34), (cx + 10, y + 34),
+               (cx + 5, y + 38), (cx + 7, y + 44), (cx, y + 40),
+               (cx - 7, y + 44), (cx - 5, y + 38), (cx - 10, y + 34),
+               (cx - 4, y + 34)], fill=(230, 160, 30))
+    d.ellipse([cx - 3, y + 32, cx + 3, y + 38], fill=(250, 210, 60))
+    # Soft smoke plume rising from the break.
+    d.ellipse([cx - 12, y + 8, cx + 2, y + 22], fill=(175, 175, 175))
+    d.ellipse([cx - 2, y + 2, cx + 12, y + 16], fill=(185, 185, 185))
+    d.ellipse([cx + 4, y + 12, cx + 16, y + 24], fill=(170, 170, 170))
+    # Two jets, well clear of the labels.
+    _plane(d, x + 78, y + 14, 9)
+    _plane(d, x + w - 96, y + 16, 9)
     f = font(SANS_B, 10)
     d.text((x + 6, y + 6), "CRIMEA", font=f, fill=(60, 60, 60))
     d.text((x + w - 46, y + 6), "RUSSIA", font=f, fill=(60, 60, 60))
@@ -343,7 +358,7 @@ def ill_gulf(d, x, y, w, h):
     f = font(SANS_B, 10)
     d.text((x + w * 0.44, y + 4), "IRAN", font=f, fill=(90, 70, 40))
     d.text((x + w * 0.24, y + 58), "BAHRAIN", font=f, fill=(70, 60, 40))
-    d.text((x + w * 0.70, y + 40), "QESHM", font=f, fill=(70, 60, 40))
+    d.text((x + w * 0.66, y + 40), "QESHM", font=f, fill=(70, 60, 40))
     d.text((x + w * 0.82, y + 64), "HORMUZ", font=f, fill=(70, 60, 40))
     for i in range(9):
         t = i / 8.0
@@ -365,8 +380,8 @@ def ill_gulf(d, x, y, w, h):
            width=3)
     d.line([x + w * 0.34, y + 50, x + w * 0.38, y + 46], fill=(176, 39, 39),
            width=3)
-    d.polygon([(x + w * 0.87, y + 38), (x + w * 0.91, y + 44),
-               (x + w * 0.87, y + 50), (x + w * 0.83, y + 44)],
+    d.polygon([(x + w * 0.92, y + 42), (x + w * 0.96, y + 48),
+               (x + w * 0.92, y + 54), (x + w * 0.88, y + 48)],
               fill=(230, 160, 30))
     pill(d, x + w * 0.36, y + 24, 96, 15, (176, 39, 39), "DRONES DOWNED", 9)
     pill(d, x + w * 0.52, y + 62, 78, 15, (43, 94, 167), "US STRIKES", 9)
@@ -411,27 +426,28 @@ def ill_ebola(d, x, y, w, h):
 
 def ill_cop31(d, x, y, w, h):
     d.rectangle([x, y, x + w, y + h], fill=(223, 238, 242))
-    d.ellipse([x + 12, y + 16, x + 52, y + 56], fill=(90, 140, 190))
-    d.ellipse([x + 20, y + 22, x + 34, y + 34], fill=(120, 190, 110))
-    d.ellipse([x + 34, y + 40, x + 46, y + 50], fill=(120, 190, 110))
-    d.rectangle([x + 118, y + 12, x + 124, y + 46], fill=(200, 200, 200),
-                outline=(120, 120, 120))
-    d.rectangle([x + 120, y + 22, x + 122, y + 44], fill=(200, 60, 40))
-    d.ellipse([x + 114, y + 44, x + 128, y + 58], fill=(200, 60, 40))
-    d.rectangle([x + 62, y + 10, x + 108, y + 52], fill=(255, 255, 255),
+    d.ellipse([x + 10, y + 16, x + 50, y + 56], fill=(90, 140, 190))
+    d.ellipse([x + 18, y + 22, x + 32, y + 34], fill=(120, 190, 110))
+    d.ellipse([x + 32, y + 40, x + 44, y + 50], fill=(120, 190, 110))
+    # Wide white box so all three lines fit without overflow.
+    d.rectangle([x + 56, y + 8, x + 140, y + 54], fill=(255, 255, 255),
                 outline=(150, 150, 150))
-    d.text((x + 66, y + 13), "DRAFT:", font=font(SANS_B, 9), fill=(30, 30, 30))
-    d.text((x + 66, y + 24), "PHASE OUT", font=font(SANS_B, 9),
+    d.text((x + 60, y + 12), "DRAFT:", font=font(SANS_B, 9), fill=(30, 30, 30))
+    d.text((x + 60, y + 23), "PHASE OUT", font=font(SANS_B, 9),
            fill=(30, 30, 30))
-    d.text((x + 66, y + 35), "FOSSIL FUELS?", font=font(SANS_B, 9),
+    d.text((x + 60, y + 34), "FOSSIL FUELS?", font=font(SANS_B, 9),
            fill=(30, 30, 30))
+    d.rectangle([x + 148, y + 12, x + 154, y + 46], fill=(200, 200, 200),
+                outline=(120, 120, 120))
+    d.rectangle([x + 150, y + 22, x + 152, y + 44], fill=(200, 60, 40))
+    d.ellipse([x + 144, y + 44, x + 158, y + 58], fill=(200, 60, 40))
     import math
-    d.ellipse([x + 147, y + 35, x + 165, y + 53], fill=(247, 214, 22))
+    d.ellipse([x + 167, y + 37, x + 181, y + 51], fill=(247, 214, 22))
     for a in range(0, 360, 45):
         dx = math.cos(math.radians(a))
         dy = math.sin(math.radians(a))
-        d.line([x + 156 + dx * 11, y + 44 + dy * 11, x + 156 + dx * 15,
-                y + 44 + dy * 15], fill=(230, 160, 30), width=2)
+        d.line([x + 174 + dx * 10, y + 44 + dy * 10, x + 174 + dx * 13,
+                y + 44 + dy * 13], fill=(230, 160, 30), width=2)
 
 
 def ill_measles(d, x, y, w, h):
@@ -548,9 +564,9 @@ def ill_garment(d, x, y, w, h):
     for i, px in enumerate((112, 124, 136, 148, 160)):
         d.ellipse([x + px, y + 34, x + px + 6, y + 40], fill=(220, 190, 150))
         d.rectangle([x + px - 1, y + 40, x + px + 7, y + 56], fill=(60, 60, 90))
-    d.rectangle([x + 104, y + 6, x + 182, y + 30], fill=(255, 255, 255),
+    d.rectangle([x + 100, y + 6, x + 190, y + 30], fill=(255, 255, 255),
                 outline=(46, 125, 79))
-    d.text((x + 108, y + 8), "TK 30,000 MINIMUM", font=font(SANS_B, 9),
+    d.text((x + 104, y + 8), "TK 30,000 MINIMUM", font=font(SANS_B, 9),
            fill=(30, 30, 30))
 
 
@@ -698,9 +714,9 @@ def draw_map(d):
     for n in sorted(PINS):
         lon, lat, col = PINS[n]
         px, py = _project(lon, lat, x0, y0, w, h)
-        d.ellipse([px - 7, py - 7, px + 7, py + 7], fill=col,
+        d.ellipse([px - 5.5, py - 5.5, px + 5.5, py + 5.5], fill=col,
                   outline=(255, 255, 255))
-        d.text((px, py - 1), str(n), font=font(SANS_B, 9),
+        d.text((px, py - 1), str(n), font=font(SANS_B, 8),
                fill=(255, 255, 255), anchor="mm")
     d.text((16, 690), "WHERE IT HAPPENED", font=font(SANS_B, 13), fill=RED)
     legend = [("Americas", REDK), ("Europe", BLUE), ("Middle East", ORANGE),
