@@ -309,98 +309,71 @@ def _strip(d, x, y, w, h, color, text):
            anchor="mm")
 
 
-def ill_bridge(d, x, y, w, h):
-    # Pale sky, blue water, thin clean deck with a clear fallen gap.
-    d.rectangle([x, y, x + w, y + h], fill=(202, 224, 236))
-    d.rectangle([x, y + 44, x + w, y + h], fill=(88, 138, 173))
-    for wy in (52, 60, 68):
-        for wx in range(0, w, 30):
-            d.arc([x + wx, y + wy - 3, x + wx + 24, y + wy + 5], 0, 180,
-                  fill=(140, 182, 210))
-    cx = x + w // 2
-    # Slender pillars (none under the fallen gap).
-    for px in (x + 30, x + 95, cx + 70, cx + 130, x + w - 28):
-        d.rectangle([px, y + 44, px + 4, y + 80], fill=(70, 76, 84))
-    # Thin deck, split where the span fell.
-    d.rectangle([x, y + 40, cx - 36, y + 44], fill=(55, 60, 68))
-    d.rectangle([cx + 36, y + 40, x + w, y + 44], fill=(55, 60, 68))
-    # Fallen span: a thin tilted deck segment dropping into the water.
-    d.polygon([(cx - 36, y + 40), (cx - 28, y + 44), (cx - 12, y + 66),
-               (cx - 20, y + 68)], fill=(55, 60, 68))
-    # Small white splash where the span meets the water.
-    d.line([cx - 26, y + 68, cx - 18, y + 64], fill=(255, 255, 255), width=2)
-    d.line([cx - 22, y + 68, cx - 14, y + 68], fill=(255, 255, 255), width=2)
-    # Orange flash at the break point.
-    d.polygon([(cx, y + 28), (cx + 4, y + 34), (cx + 10, y + 34),
-               (cx + 5, y + 38), (cx + 7, y + 44), (cx, y + 40),
-               (cx - 7, y + 44), (cx - 5, y + 38), (cx - 10, y + 34),
-               (cx - 4, y + 34)], fill=(230, 160, 30))
-    d.ellipse([cx - 3, y + 32, cx + 3, y + 38], fill=(250, 210, 60))
-    # Soft smoke plume rising from the break.
-    d.ellipse([cx - 12, y + 8, cx + 2, y + 22], fill=(175, 175, 175))
-    d.ellipse([cx - 2, y + 2, cx + 12, y + 16], fill=(185, 185, 185))
-    d.ellipse([cx + 4, y + 12, cx + 16, y + 24], fill=(170, 170, 170))
-    # Two jets, well clear of the labels.
-    _plane(d, x + 78, y + 14, 9)
-    _plane(d, x + w - 96, y + 16, 9)
+# ------------------------------------------------------- hybrid hero art
+# AI-generated flat-vector illustrations for the 3 hero cards. Each is
+# center-cropped to the hero box aspect, resized to the box, pasted, and
+# then the PIL labels are drawn on top exactly as in the hand-drawn
+# versions (same text, same positions, same colours). The hand-drawn
+# shapes are replaced; the labels are not.
+_HERO_DIR = os.path.dirname(os.path.abspath(__file__))
+_HERO_FILES = {"bridge": "hero_bridge.png", "gulf": "hero_gulf.png",
+               "quad": "hero_quad.png"}
+_HERO_CACHE = {}
+
+
+def _hero_box(name, w, h):
+    """Generated illustration center-cropped and resized to (w, h)."""
+    key = (name, w, h)
+    if key not in _HERO_CACHE:
+        src = Image.open(os.path.join(_HERO_DIR, _HERO_FILES[name]))
+        src = src.convert("RGB")
+        sw, sh = src.size
+        target = w / h
+        if sw / sh > target:
+            nw = int(sh * target)
+            left = (sw - nw) // 2
+            src = src.crop((left, 0, left + nw, sh))
+        else:
+            nh = int(sw / target)
+            top = (sh - nh) // 2
+            src = src.crop((0, top, sw, top + nh))
+        _HERO_CACHE[key] = src.resize((w, h), Image.LANCZOS)
+    return _HERO_CACHE[key]
+
+
+def ill_bridge(img, d, x, y, w, h):
+    img.paste(_hero_box("bridge", w, h), (x, y))
     f = font(SANS_B, 10)
     d.text((x + 6, y + 6), "CRIMEA", font=f, fill=(60, 60, 60))
     d.text((x + w - 46, y + 6), "RUSSIA", font=f, fill=(60, 60, 60))
 
 
-def ill_gulf(d, x, y, w, h):
-    d.rectangle([x, y, x + w, y + h], fill=(168, 200, 216))
-    d.polygon([(x, y), (x + w, y), (x + w, y + 26), (x + w * 0.62, y + 34),
-               (x + w * 0.45, y + 22), (x + w * 0.2, y + 30), (x, y + 24)],
-              fill=(232, 217, 176))
-    d.ellipse([x + w * 0.30, y + 46, x + w * 0.36, y + 56], fill=(232, 217, 176))
-    d.ellipse([x + w * 0.72, y + 52, x + w * 0.86, y + 60], fill=(232, 217, 176))
+def ill_gulf(img, d, x, y, w, h):
+    img.paste(_hero_box("gulf", w, h), (x, y))
     f = font(SANS_B, 10)
     d.text((x + w * 0.44, y + 4), "IRAN", font=f, fill=(90, 70, 40))
     d.text((x + w * 0.24, y + 58), "BAHRAIN", font=f, fill=(70, 60, 40))
     d.text((x + w * 0.66, y + 40), "QESHM", font=f, fill=(70, 60, 40))
     d.text((x + w * 0.82, y + 64), "HORMUZ", font=f, fill=(70, 60, 40))
-    for i in range(9):
-        t = i / 8.0
-        px = x + w * 0.30 + t * w * 0.28
-        py = y + 52 - t * 16
-        if i % 2 == 0:
-            d.ellipse([px - 1.5, py - 1.5, px + 1.5, py + 1.5],
-                      fill=(176, 39, 39))
-    d.line([x + w * 0.60, y + 62, x + w * 0.78, y + 50], fill=(43, 94, 167),
-           width=2)
-    for i in range(5):
-        t = i / 4.0
-        px = x + w * 0.60 + t * w * 0.18
-        py = y + 62 - t * 12
-        if i % 2 == 0:
-            d.ellipse([px - 1.5, py - 1.5, px + 1.5, py + 1.5],
-                      fill=(43, 94, 167))
-    d.line([x + w * 0.34, y + 46, x + w * 0.38, y + 50], fill=(176, 39, 39),
-           width=3)
-    d.line([x + w * 0.34, y + 50, x + w * 0.38, y + 46], fill=(176, 39, 39),
-           width=3)
-    d.polygon([(x + w * 0.92, y + 42), (x + w * 0.96, y + 48),
-               (x + w * 0.92, y + 54), (x + w * 0.88, y + 48)],
-              fill=(230, 160, 30))
     pill(d, x + w * 0.36, y + 24, 96, 15, (176, 39, 39), "DRONES DOWNED", 9)
     pill(d, x + w * 0.52, y + 62, 78, 15, (43, 94, 167), "US STRIKES", 9)
 
 
-def ill_quad(d, x, y, w, h):
-    d.rectangle([x, y, x + w, y + h], fill=(230, 221, 240))
+def ill_quad(img, d, x, y, w, h):
+    # Shift the generated art up 10px so the flags end above the country
+    # names (y+54), which then sit on the pale background below the flags.
+    hb = _hero_box("quad", w, h)
+    hb = hb.crop((0, 10, w, h))
+    img.paste(hb, (x, y))
     d.rectangle([x, y, x + w, y + 20], fill=PURPLE)
     center_text(d, x + w / 2, y + 3, "QUAD LEADERS\u2019 SUMMIT · MANILA",
                 font(SANS_B, 11), (255, 255, 255))
+    names = ["US", "INDIA", "JAPAN", "AUSTRALIA"]
     fw, fh = 56, 26
     gap = (w - 4 * fw) / 5
-    flags = [_flag_us, _flag_india, _flag_japan, _flag_australia]
-    names = ["US", "INDIA", "JAPAN", "AUSTRALIA"]
-    for i, fn in enumerate(flags):
+    for i, nm in enumerate(names):
         fx = x + gap + i * (fw + gap)
-        fn(d, fx, y + 26, fw, fh)
-        d.rectangle([fx, y + 26, fx + fw, y + 26 + fh], outline=(120, 120, 120))
-        center_text(d, fx + fw / 2, y + 54, names[i], font(SANS_B, 8),
+        center_text(d, fx + fw / 2, y + 54, nm, font(SANS_B, 8),
                     (60, 60, 60))
     d.rectangle([x, y + 66, x + w, y + 70], fill=(120, 80, 40))
     _strip(d, x, y + 70, w, h - 70, PURPLE, "NEW CRITICAL-MINERALS DEALS")
@@ -648,11 +621,11 @@ def draw_kicker(d, x, y, num, region, color, dia):
            font=font(SANS_B, 12 if dia >= 17 else 11), fill=color)
 
 
-def draw_top3(d):
+def draw_top3(img, d):
     y0 = 138
     for i, s in enumerate(TOP3):
         x = 16 + i * (324 + 10)
-        ILLUSTRATIONS[s["ill"]](d, x, y0, 324, 84)
+        ILLUSTRATIONS[s["ill"]](img, d, x, y0, 324, 84)
         if s["strip"]:
             _strip(d, x, y0 + 68, 324, 16, s["strip_color"], s["strip"])
         draw_kicker(d, x, y0 + 89, s["num"], s["region"], s["color"], 17)
@@ -783,7 +756,7 @@ def main():
     d = ImageDraw.Draw(img)
     draw_header(d)
     draw_numbers_strip(d)
-    draw_top3(d)
+    draw_top3(img, d)
     draw_grid(d)
     draw_map(d)
     draw_list(d)
